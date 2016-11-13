@@ -435,6 +435,31 @@ module.exports = function(Chart) {
 			this.tooltip.initialize();
 		},
 
+		/**
+		 * Updates the config of the chart
+		 * @method updateConfig
+		 * @param partialConfig {Object} partial options to merge with the existing options
+		 */
+		updateConfig: function(partialConfig) {
+			var me = this;
+			var newOptions = helpers.configMerge(me.config.options, partialConfig);
+			me.config.options = newOptions;
+			me.options = newOptions;
+
+			// Update Scales
+			helpers.each(me.scales, function(scale) {
+				Chart.layoutService.removeBox(me, scale);
+			});
+			delete me.scale; // could be set for radar or polar area charts
+			me.buildScales();
+
+			// Tooltip
+			me.tooltip._options = newOptions.tooltips;
+
+			// Notify plugins
+			Chart.plugins.notify('configUpdate', [me, newOptions]);
+		},
+
 		update: function(animationDuration, lazy) {
 			var me = this;
 			Chart.plugins.notify('beforeUpdate', [me]);

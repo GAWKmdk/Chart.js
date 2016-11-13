@@ -830,4 +830,85 @@ describe('Chart.Controller', function() {
 			expect(meta.data[3]._model.y).toBe(484);
 		});
 	});
+
+	describe('config update', function() {
+		it ('should update the config', function() {
+			var chart = acquireChart({
+				type: 'line',
+				data: {
+					labels: ['A', 'B', 'C', 'D'],
+					datasets: [{
+						data: [10, 20, 30, 0]
+					}]
+				},
+				options: {
+					responsive: true
+				}
+			});
+
+			chart.updateConfig({
+				responsive: false
+			});
+
+			expect(chart.options.responsive).toBe(false);
+		});
+
+		it ('should rebuild scales', function() {
+			var chart = acquireChart({
+				type: 'line',
+				data: {
+					labels: ['A', 'B', 'C', 'D'],
+					datasets: [{
+						data: [10, 20, 30, 100]
+					}]
+				},
+				options: {
+					responsive: true
+				}
+			});
+
+			chart.updateConfig({
+				scales: {
+					yAxes: [{
+						type: 'logarithmic',
+					}]
+				}
+			});
+
+			var LogScale = Chart.scaleService.getScaleConstructor('logarithmic');
+			var logDefaults = Chart.scaleService.getScaleDefaults('logarithmic');
+			var yScale = chart.scales['y-axis-0'];
+
+			// Re-created with the correct type
+			expect(yScale instanceof LogScale).toBe(true);
+
+			// Was default config merged in
+			expect(yScale.options).toEqual(jasmine.objectContaining(logDefaults));
+		});
+
+		it ('should update tooltip options', function() {
+			var chart = acquireChart({
+				type: 'line',
+				data: {
+					labels: ['A', 'B', 'C', 'D'],
+					datasets: [{
+						data: [10, 20, 30, 100]
+					}]
+				},
+				options: {
+					responsive: true
+				}
+			});
+
+			var newTooltipConfig = {
+				mode: 'dataset',
+				intersect: false
+			};
+			chart.updateConfig({
+				tooltips: newTooltipConfig
+			});
+
+			expect(chart.tooltip._options).toEqual(jasmine.objectContaining(newTooltipConfig));
+		});
+	});
 });
